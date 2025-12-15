@@ -1,0 +1,173 @@
+{
+    "Targets": [
+        {
+            "TargetName":  "Taktschnitt_",
+            "MachineModel": "AS100",
+            "TestBars": true,
+            "TestFolders": [{
+                "Folder": "VerifizierteTestdaten/Taktschnitt_Allgemein",
+                "ToolStocks": [
+                    {
+                        "ToolStockId": 1,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AS100_WF_ToolStock_1.xml"
+                    },
+                    {
+                        "ToolStockId": 2,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AS100_WF_ToolStock_2.xml"
+                    }
+                ]
+            }, {
+                "Folder": "VerifizierteTestdaten/Taktschnitt_AS100",
+                "ToolStocks": [
+                    {
+                        "ToolStockId": 1,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AS100_WF_ToolStock_1.xml"
+                    },
+                    {
+                        "ToolStockId": 2,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AS100_WF_ToolStock_2.xml"
+                    }
+                ]
+            }],
+            "Features":[
+                { "ShiftCutDevice": true }
+            ]
+        },
+        {
+            "TargetName":  "Taktschnitt_",
+            "MachineModel": "AF510",
+            "TestBars": true,
+            "TestFolders": [{
+                "Folder": "VerifizierteTestdaten/Taktschnitt_Allgemein",
+                "ToolStocks": [
+                    {
+                        "ToolStockId": 1,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AF510_ToolStock_1.xml"
+                    }
+                ]
+            },{
+                "Folder": "VerifizierteTestdaten/Taktschnitt_AF5XX",
+                "ToolStocks": [
+                    {
+                        "ToolStockId": 1,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AF510_ToolStock_1.xml"
+                    }
+                ]
+            }],
+            "Features":[
+                { "ShiftCutDevice": true }
+            ]
+        },
+        {
+            "TargetName":  "Taktschnitt_",
+            "MachineModel": "AF500",
+            "TestBars": true,
+            "TestFolders": [{
+                "Folder": "VerifizierteTestdaten/Taktschnitt_Allgemein",
+                "ToolStocks": [
+                    {
+                        "ToolStockId": 1,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AF510_ToolStock_1.xml"
+                    }
+                ]
+            },{
+                "Folder": "VerifizierteTestdaten/Taktschnitt_AF5XX",
+                "ToolStocks": [
+                    {
+                        "ToolStockId": 1,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AF510_ToolStock_1.xml"
+                    }
+                ]
+            }],
+            "Features":[
+                { "ShiftCutDevice": true }
+            ]
+        },
+        {
+            "TargetName":  "test",
+            "MachineModel": "AS100",
+            "TestFolders": [{
+                "Folder": "VerifizierteTestdaten/AS100",
+                "ToolStocks": [
+                    {
+                        "ToolStockId": 1,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AS100_WF_ToolStock_1.xml"
+                    },
+                    {
+                        "ToolStockId": 2,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AS100_WF_ToolStock_2.xml"
+                    }
+                ]
+            }],
+            "Features":[
+            ]
+        },
+        {
+            "TargetName":  "testMagzine",
+            "MachineModel": "AS100",
+            "TestFolders": [{
+                "Folder": "VerifizierteTestdaten/AS100",
+                "ToolStocks": [
+                    {
+                        "ToolStockId": 1,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AS100_WF_ToolStock_1.xml"
+                    },
+                    {
+                        "ToolStockId": 2,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AS100_WF_ToolStock_2.xml"
+                    }
+                ]
+            }],
+            "MountCount": 5,
+            "Features":[
+            ]
+        },
+        {
+            "TargetName": "test",
+            "MachineModel": "AF500",
+            "TestFolders": [{
+                "Folder": "VerifizierteTestdaten/AF5XX",
+                "ToolStocks": [
+                    {
+                        "ToolStockId": 1,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AF510_ToolStock_1.xml"
+                    }
+                ]
+            }],
+            "Features":[
+            ]
+        },
+        {
+            "TargetName": "test",
+            "MachineModel": "AF510",
+            "TestFolders": [{
+                "Folder": "VerifizierteTestdaten/AF5XX",
+                "ToolStocks": [{
+                        "ToolStockId": 1,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AF510_ToolStock_1.xml"
+                    }
+                ]
+            }],
+            "Features":[
+            ]
+        },
+        {
+            "TargetName": "testRobot",
+            "MachineModel": "AF500",
+            "TestFolders": [{
+                "Folder": "VerifizierteTestdaten/AF5XX_Roboter",
+                "ToolStocks": [
+                    {
+                        "ToolStockId": 1,
+                        "ToolstockFile": "TestEnvironment/Toolstocks/AF510_ToolStock_1.xml"
+                    }
+                ]
+            }],
+            "MountCount": 2,
+            "Features":[
+                {"createShelf": "smallShelf"},
+                {"RobotMode": true}
+            ]
+        }
+    ]
+}

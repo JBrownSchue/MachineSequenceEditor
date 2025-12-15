@@ -1,0 +1,21 @@
+{
+    "MachineModel": "AS100",
+    "TestBars": true,
+    "FileOrder": [
+        "BGE00002.01.xml",
+        "BGE00004.01.xml",
+        "BGE00003.01.xml"
+    ],
+    "MountCount": 12,
+    "Features": [
+        {
+            "ShiftCutDevice": true
+        },
+        {
+            "createShelf": "smallShelf"
+        },
+        {
+            "RobotMode": true
+        }
+    ]
+}
