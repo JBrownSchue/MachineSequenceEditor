@@ -1,1 +1,1 @@
-# BackupEditor
+# Machine Sequence Editor
