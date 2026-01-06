@@ -1,1 +1,1 @@
-from .views import getUploadView, getEditorView, getResultView
+from .views import MachineApp

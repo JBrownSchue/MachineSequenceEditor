@@ -29,17 +29,18 @@ class ZipService:
 
         try:
             with zipfile.ZipFile(pathToZipFile, 'r') as zipFileHandle:
-                
+
                 unsortedFileNames = zipFileHandle.namelist()
                 listOfFileNames = sorted(unsortedFileNames)
 
                 for currentFileName in listOfFileNames:
-                    
+
                     isTargetFile = False
-                    
+
                     for targetFolderString in targetFolders:
-                        startsWithFolder = currentFileName.startswith(targetFolderString)
-                        
+                        startsWithFolder = currentFileName.startswith(
+                            targetFolderString)
+
                         if startsWithFolder:
                             isTargetFile = True
                             break
@@ -51,19 +52,21 @@ class ZipService:
                         try:
                             with zipFileHandle.open(currentFileName) as fileHandle:
                                 fileContentBytes = fileHandle.read()
-                                fileContentString = fileContentBytes.decode('utf-8')
-                                
+                                fileContentString = fileContentBytes.decode(
+                                    'utf-8')
+
                                 extractedContentMap[currentFileName] = fileContentString
-                                
+
                         except Exception:
                             errorMessage = "Error: Could not decode file content."
                             extractedContentMap[currentFileName] = errorMessage
-                            
+
         except Exception as exceptionObject:
             print(f"Error reading zip: {exceptionObject}")
 
         return extractedContentMap
-    
+
+
     def readSingleFile(
         self,
         pathToZipFile: str,
@@ -76,21 +79,22 @@ class ZipService:
         @return Content of the file as string, or empty string if failed.
         """
         fileContentResult = ""
-        
+
         pathExists = os.path.exists(pathToZipFile)
         if not pathExists:
             return fileContentResult
 
         try:
             with zipfile.ZipFile(pathToZipFile, 'r') as zipFileHandle:
-                
+
                 allFileNamesList = zipFileHandle.namelist()
                 fileIsPresentInZip = targetFileName in allFileNamesList
-                
+
                 if fileIsPresentInZip:
                     with zipFileHandle.open(targetFileName) as fileHandle:
                         rawBytes = fileHandle.read()
-                        fileContentResult = rawBytes.decode('utf-8', errors='ignore')
+                        fileContentResult = rawBytes.decode(
+                            'utf-8', errors='ignore')
                 else:
                     print(f"File {targetFileName} not found in ZIP.")
 
@@ -98,7 +102,8 @@ class ZipService:
             print(f"Error reading single file: {exceptionObject}")
 
         return fileContentResult
-    
+
+
     def getFileNamesInFolder(
         self,
         pathToZipFile: str,
@@ -111,35 +116,36 @@ class ZipService:
         @return List of strings representing the filenames (without path prefix).
         """
         fileListResult = []
-        
+
         pathExists = os.path.exists(pathToZipFile)
         if not pathExists:
             return fileListResult
 
         try:
             with zipfile.ZipFile(pathToZipFile, 'r') as zipFileHandle:
-                
+
                 unsortedFiles = zipFileHandle.namelist()
                 allFilesSorted = sorted(unsortedFiles)
-                
+
                 for fullPathString in allFilesSorted:
-                    
+
                     isInFolder = fullPathString.startswith(folderName)
                     isNotTheFolderItself = fullPathString != folderName
-                    
+
                     if isInFolder and isNotTheFolderItself:
-                        
+
                         cleanFileName = os.path.basename(fullPathString)
-                        
+
                         fileNameIsValid = len(cleanFileName) > 0
-                        
+
                         if fileNameIsValid:
                             fileListResult.append(cleanFileName)
-                            
+
         except Exception as exceptionObject:
             print(f"Error listing files: {exceptionObject}")
-            
+
         return fileListResult
+
 
     def createNewZipWithChanges(
         self,
@@ -157,24 +163,25 @@ class ZipService:
         try:
             with zipfile.ZipFile(originalZipPath, 'r') as sourceZipHandle:
                 with zipfile.ZipFile(newZipPath, 'w') as targetZipHandle:
-                    
+
                     listOfInfoObjects = sourceZipHandle.infolist()
 
                     for zipInfoObject in listOfInfoObjects:
                         currentFileName = zipInfoObject.filename
-                        
+
                         fileWasEdited = currentFileName in editedDataMap
 
                         if fileWasEdited:
                             newContentString = editedDataMap[currentFileName]
-                            
+
                             targetZipHandle.writestr(
                                 currentFileName,
                                 newContentString
                             )
                         else:
-                            originalContentBytes = sourceZipHandle.read(currentFileName)
-                            
+                            originalContentBytes = sourceZipHandle.read(
+                                currentFileName)
+
                             targetZipHandle.writestr(
                                 zipInfoObject,
                                 originalContentBytes
@@ -184,7 +191,8 @@ class ZipService:
         except Exception as exceptionObject:
             print(f"Error saving zip: {exceptionObject}")
             return False
-        
+
+
     def createZipWithAddedConfig(
             self,
             originalZipPath: str,
@@ -203,7 +211,7 @@ class ZipService:
         pathExists = os.path.exists(originalZipPath)
         if not pathExists:
             return False
-        
+
         try:
             jsonContentString = json.dumps(configurationData, indent=4)
 
@@ -217,7 +225,7 @@ class ZipService:
                     targetZipHandle.writestr(configFileName, jsonContentString)
 
             return True
-        
+
         except Exception as exceptionObject:
             print(f"Error creating final zip: {exceptionObject}")
             return False
