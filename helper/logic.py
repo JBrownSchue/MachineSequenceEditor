@@ -7,6 +7,11 @@ UPLOAD_DIRECTORY_NAME = "uploads"
 MACHINE_TYPE_PREFIX = ";MACHINE_TYPE_"
 REAL_MACHINE_ID_PREFIX = "REAL_MACHINE_TYPE:"
 
+FOLDER_BARS = "Bars/"
+FOLDER_PROFILES = "Profiles/"
+XML_TAG_IST = "Is_Number"
+XML_TAG_SOLL = "ReferenceValue"
+
 # Machine Specific Limits
 DEFAULT_MIN_MOUNT_COUNT = 0
 DEFAULT_MAX_MOUNT_COUNT = 25
@@ -26,9 +31,10 @@ class MachineBusinessLogic:
         self.machine_model_name = "UNKNOWN"
         self.machine_display_string = "Unknown Machine"
         self.mount_count = DEFAULT_MIN_MOUNT_COUNT
-        self.active_folder = "Bars/"
+        self.active_folder = FOLDER_BARS
         self.is_bars_mode = True
         self.current_file_order = []
+        self.extracted_xml_data = {}
         
         self.feature_state = {
             "ShiftCutDevice": False,
@@ -142,6 +148,26 @@ class MachineBusinessLogic:
         self.current_file_order = self.zip_service.getFileNamesInFolder(
             self.uploaded_file_path, self.active_folder
         )
+
+
+    def logic_load_xml_data_for_files(self) -> None:
+        """
+        Lädt IST- und SOLL-Werte aus XML-Dateien in Bars/ und Profiles/.
+        Nutzt Konstanten statt Magic Numbers.
+        """
+        if not self.uploaded_file_path:
+            return
+
+        target_folders = [FOLDER_BARS, FOLDER_PROFILES]
+        tags_to_find = [XML_TAG_IST, XML_TAG_SOLL]
+
+        raw_results = self.zip_service.extractXmlDataFromFolders(
+            self.uploaded_file_path, 
+            target_folders, 
+            tags_to_find
+        )
+
+        self.extracted_xml_data = raw_results
 
 
     def logic_reorder_drag_drop(self, source_index: int, destination_index: int) -> None:

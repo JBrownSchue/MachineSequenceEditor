@@ -14,6 +14,7 @@ class IMachineService(Protocol):
     current_file_order: List[str]
     is_bars_mode: bool
     uploaded_file_path: str
+    extracted_xml_data: Dict[str, Dict[str, str]]
 
 
     def logic_handle_upload(self, file_info: Any) -> str:
@@ -56,6 +57,12 @@ class IMachineService(Protocol):
     def logic_load_files_for_mode(self) -> None:
         """
         Loads the list of files (Bars or Profiles) from the ZIP based on current mode.
+        """
+        ...
+
+    def logic_load_xml_data_for_files(self) -> None:
+        """
+        Loads the IST and SOLL Number from Bars and Profiles from the ZIP.
         """
         ...
 

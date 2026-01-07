@@ -2,6 +2,7 @@ import zipfile
 import os
 import json
 from typing import List, Dict, Any
+import xml.etree.ElementTree as ET
 
 
 class ZipService:
@@ -103,6 +104,55 @@ class ZipService:
 
         return fileContentResult
 
+    def extractXmlDataFromFolders(
+        self,
+        pathToZipFile: str,
+        targetFolders: List[str],
+        tagsToFind: List[str]
+    ) -> Dict[str, Dict[str, str]]:
+        """
+        @brief Liest XML-Dateien aus bestimmten Ordnern und extrahiert spezifische Werte.
+        @param targetFolders Liste der Ordner (z.B. ["FolderA/", "FolderB/"])
+        @param tagsToFind Liste der XML-Tags, deren Text extrahiert werden soll.
+        @return Ein Dictionary: { dateiname: { tag_name: wert } }
+        """
+        extractedDataMap = {}
+
+        if not os.path.exists(pathToZipFile):
+            return extractedDataMap
+
+        try:
+            with zipfile.ZipFile(pathToZipFile, 'r') as zipFileHandle:
+                for fileName in zipFileHandle.namelist():
+                    
+                    isInTargetFolder = any(fileName.startswith(folder) for folder in targetFolders)
+                    isXmlFile = fileName.lower().endswith('.xml')
+                    
+                    if isInTargetFolder and isXmlFile:
+                        try:
+                            with zipFileHandle.open(fileName) as fileHandle:
+                                tree = ET.parse(fileHandle)
+                                root = tree.getroot()
+                                
+                                fileResults = {}
+                                for tag in tagsToFind:
+                                    if tag in root.attrib:
+                                        fileResults[tag] = root.attrib[tag]
+                                    else:
+                                        element = root.find(f".//{tag}")
+                                        fileResults[tag] = element.text if element is not None else "NOT_FOUND"
+                                
+                                extractedDataMap[fileName] = fileResults
+                                
+                        except ET.ParseError:
+                            print(f"Fehler: {fileName} ist kein gültiges XML.")
+                        except Exception as error:
+                            print(f"Fehler beim Verarbeiten von {fileName}: {error}")
+
+        except Exception as error:
+            print(f"Allgemeiner Fehler beim Zugriff auf ZIP: {error}")
+
+        return extractedDataMap
 
     def getFileNamesInFolder(
         self,

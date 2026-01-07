@@ -1,6 +1,7 @@
 import flet as ft
 import os
 from helper import IMachineService, MachineBusinessLogic
+from helper.logic import XML_TAG_IST, XML_TAG_SOLL
 
 # Layout Constants
 DEFAULT_PADDING = 20
@@ -153,6 +154,7 @@ class EditorView(ft.View):
         if self.service.machine_model_name == "UNKNOWN":
             self.service.logic_parse_config()
             self.service.logic_load_files_for_mode()
+            self.service.logic_load_xml_data_for_files()
         self.refresh_ui()
 
 
@@ -220,10 +222,25 @@ class EditorView(ft.View):
         self.files_list.controls.clear()
 
         for index, name in enumerate(self.service.current_file_order):
+            display_name = os.path.splitext(name)[0]
+
+            full_path = f"{self.service.active_folder}{name}"
+            xml_info = self.service.extracted_xml_data.get(full_path, {})
+            ist_val = xml_info.get(XML_TAG_IST, "-")
+            soll_val = xml_info.get(XML_TAG_SOLL, "-")
+
             self.files_list.controls.append(
                 ft.Draggable(
                     group="files",
                     data=str(index),
+                    content_feedback=ft.Container(
+                        content=ft.Text(f"{display_name}"),
+                        padding=10,
+                        bgcolor=ft.Colors.BLUE_50,
+                        border_radius=5,
+                        border=ft.border.all(1, ft.Colors.BLUE),
+                        opacity=0.8,
+                    ),
                     content=ft.DragTarget(
                         group="files",
                         data=str(index),
@@ -231,7 +248,9 @@ class EditorView(ft.View):
                         content=ft.Container(
                             content=ft.Row([
                                 ft.Icon(ft.Icons.DRAG_HANDLE, color=ft.Colors.GREY_400),
-                                ft.Text(f"{index + 1}. {name}")
+                                ft.Text(f"{index + 1}. {display_name}", expand=True),
+                                ft.Text(f"IST: {ist_val}", size=12, color=ft.Colors.GREY_400),
+                                ft.Text(f"SOLL: {soll_val}", size=12, color=ft.Colors.BLACK),
                             ]),
                             padding=10, 
                             border=ft.border.all(1, ft.Colors.GREY_300), 
@@ -261,6 +280,7 @@ class EditorView(ft.View):
         """Switches between Bar and Profile modes and reloads file lists."""
         self.service.is_bars_mode = event.control.value
         self.service.logic_load_files_for_mode()
+        self.service.logic_load_xml_data_for_files()
         self.refresh_ui()
 
 
