@@ -234,7 +234,10 @@ class EditorView(ft.View):
                     group="files",
                     data=str(index),
                     content_feedback=ft.Container(
-                        content=ft.Text(f"{display_name}"),
+                        content=ft.Text(
+                            f"{display_name}",
+                            size=14
+                            ),
                         padding=10,
                         bgcolor=ft.Colors.BLUE_50,
                         border_radius=5,
