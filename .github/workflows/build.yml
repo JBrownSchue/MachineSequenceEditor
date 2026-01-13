@@ -1,32 +1,35 @@
-name: Build Windows EXE
+name: Build Windows EXE (Modern)
 on:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Python Setup
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Abhängigkeiten installieren
+      - name: Install Dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install flet --upgrade
+          pip install flet
           pip install -r requirements.txt
 
-      - name: Flet Build Windows
+      - name: Build EXE
         run: |
-          flet pack __main__.py --icon assets/icon.ico --name "TestConfigurationWizard" 
+          flet build windows --product "TestConfigurationWizard" --module-name "__main__"
 
-      - name: Artefakt hochladen
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MachineSequenceEditor-EXE
-          path: dist/
+          name: TestConfigurationWizard-App
+          path: build/windows/x64/release/bundle/
