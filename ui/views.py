@@ -395,7 +395,7 @@ class ResultView(ft.View):
         )
 
 
-    def on_export_finished(self, event: ft.FilePickerResultEvent):
+    def on_export_finished(self, event: ft.FilePickerUploadEvent):
         """Handles the completion of the file export process."""
         if event.path:
             self.export_progress.visible = True
