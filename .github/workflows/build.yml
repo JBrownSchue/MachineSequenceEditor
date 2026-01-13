@@ -25,6 +25,9 @@ jobs:
           pip install -r requirements.txt
 
       - name: Build EXE
+        shell: pwsh
+        env:
+          PYTHONUTF8: 1
         run: |
           flet build windows --product "TestConfigurationWizard" --module-name "__main__"
 
