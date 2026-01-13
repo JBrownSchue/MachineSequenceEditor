@@ -64,7 +64,7 @@ class UploadView(ft.View):
         ]
 
 
-    def on_file_result(self, event: ft.FilePickerResultEvent):
+    def on_file_result(self, event: ft.FilePickerUploadEvent):
         """Processes the file selection event and updates UI status."""
         if event.files:
             selected_file = event.files[0]
