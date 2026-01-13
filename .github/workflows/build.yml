@@ -24,12 +24,10 @@ jobs:
 
       - name: Flet Build Windows
         run: |
-          # --icon zeigt auf dein Icon im assets Ordner
-          # --main-dir spezifiziert das Verzeichnis (optional, wenn im Root)
-          flet build windows --product "MachineSequenceEditor" --module-name "__main__"
+          flet pack main.py --icon assets/icon.ico --name "TestConfigurationWizard" 
 
       - name: Artefakt hochladen
         uses: actions/upload-artifact@v4
         with:
           name: MachineSequenceEditor-EXE
-          path: build/windows
+          path: dist/
