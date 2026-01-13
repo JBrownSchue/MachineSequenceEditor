@@ -29,10 +29,10 @@ jobs:
         env:
           PYTHONUTF8: 1
         run: |
-          flet build windows --product "TestConfigurationWizard" --module-name "__main__"
+          python -m flet build windows -o dist --product "TestConfigurationWizard" --module-name "__main__"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: TestConfigurationWizard-App
-          path: build/windows/x64/release/bundle/
+          path: dist/
