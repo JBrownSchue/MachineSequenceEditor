@@ -53,6 +53,9 @@ class IMachineService(Protocol):
         """
         ...
 
+    def logic_is_mode_switch_allowed(self) -> None:
+        """CHECKS if you are allowed to switch between Bars and Profiles"""
+        ...
 
     def logic_load_files_for_mode(self) -> None:
         """

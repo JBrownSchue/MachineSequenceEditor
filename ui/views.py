@@ -10,6 +10,7 @@ HEADER_TEXT_SIZE = 24
 INSTRUCTION_TEXT_SIZE = 20
 ICON_SIZE_LARGE = 50
 ICON_SIZE_MEDIUM = 20
+EXPORT_FILE_SUFFIX = "_konfiguriert"
 
 class UploadView(ft.View):
     """
@@ -168,6 +169,16 @@ class EditorView(ft.View):
         _, has_error, message = self.service.logic_validate_mount_count(self.mount_count_field.value)
         self.mount_count_hint.value = message
         self.mount_count_hint.color = ft.Colors.RED if has_error else ft.Colors.GREY
+
+        can_switch_mode = self.service.logic_is_mode_switch_allowed()
+        self.mode_switch.disabled = not can_switch_mode
+
+        if not can_switch_mode:
+            self.mode_description.value = "Test Bars (Erzwungen durch SiftCutDevice)"
+            self.mode_description.color = ft.Colors.ORANGE_700
+        else:
+            self.mode_description.value = "Test Bars" if self.service.is_bars_mode else "Test Profiles"
+            self.mode_description.color = ft.Colors.BLACK
         
         self.rebuild_features_ui()
         self.rebuild_files_ui()
@@ -374,8 +385,10 @@ class ResultView(ft.View):
 
     def on_save_click(self, _):
         """Triggers the system save dialog for the result ZIP."""
-        input_filename = os.path.basename(self.service.uploaded_file_path)
-        default_output_name = f"{input_filename}_konfiguriert"
+        full_input_name = os.path.basename(self.service.uploaded_file_path)
+        name_part, extension = os.path.splitext(full_input_name)
+        default_output_name = f"{name_part}{EXPORT_FILE_SUFFIX}{extension}"
+
         self.save_dialog.save_file(
             file_name=default_output_name, 
             allowed_extensions=["zip"]

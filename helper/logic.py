@@ -19,6 +19,25 @@ SMALL_SHELF_LIMIT = 9
 AS100_MODEL_LIMIT = 10
 MIN_COUNT_FOR_EQUIPPED_MODELS = 1
 
+# Features
+FEATURE_SHIFT_CUT = "ShiftCutDevice"
+FEATURE_SHELF_SMALL = "createShelf"
+FEATURE_SHELF_BIG = "createBigShelf"
+FEATURE_ROBOT_MODE = "RobotMode"
+
+# Konstanten für die Parsing-Logik
+EXPECTED_KV_PARTS = 2
+INDEX_KEY = 0
+INDEX_VALUE = 1
+
+# Mount Counts
+MOUNT_REQUIRED = 1
+MOUNT_NOT_REQUIRED = 0
+MODELS_WITH_MOUNT = {"AF500", "AF510", "AS100"}
+
+SEPARATOR_ASSIGNMENT = "="
+SEPARATOR_PROPERTY = ":"
+
 class MachineBusinessLogic:
     """
     Concrete implementation of the machine sequence business logic.
@@ -37,10 +56,10 @@ class MachineBusinessLogic:
         self.extracted_xml_data = {}
         
         self.feature_state = {
-            "ShiftCutDevice": False,
-            "createShelf": False,
-            "createBigShelf": False,
-            "RobotMode": False
+            FEATURE_SHIFT_CUT: False,
+            FEATURE_SHELF_SMALL: False,
+            FEATURE_SHELF_BIG: False,
+            FEATURE_ROBOT_MODE: False
         }
         os.makedirs(UPLOAD_DIRECTORY_NAME, exist_ok=True)
 
@@ -68,28 +87,38 @@ class MachineBusinessLogic:
 
         for line in raw_content.splitlines():
             line = line.strip()
-            if line.startswith(MACHINE_TYPE_PREFIX) and "=" in line:
-                parts = line.split("=")
-                if len(parts) == 2:
-                    machine_definitions_map[parts[1].strip()] = parts[0].strip()[
-                        len(MACHINE_TYPE_PREFIX):]
-            elif line.startswith(REAL_MACHINE_ID_PREFIX):
-                parts = line.split(":")
-                if len(parts) > 1:
-                    found_real_id = parts[1].strip()
+            
+            if line.startswith(MACHINE_TYPE_PREFIX) and SEPARATOR_ASSIGNMENT in line:
+                parts = [p.strip() for p in line.split(SEPARATOR_ASSIGNMENT)]
+                if len(parts) == EXPECTED_KV_PARTS:
+                    key_part, value_part = parts
+                    clean_key = key_part[len(MACHINE_TYPE_PREFIX):]
+                    machine_definitions_map[value_part] = clean_key
 
-        if found_real_id and found_real_id in machine_definitions_map:
-            real_name = machine_definitions_map[found_real_id]
+            elif line.startswith(REAL_MACHINE_ID_PREFIX):
+                parts = [p.strip() for p in line.split(SEPARATOR_PROPERTY)]
+                if len(parts) >= EXPECTED_KV_PARTS:
+                    found_real_id = parts[INDEX_VALUE]
+
+        self._apply_machine_identity(found_real_id, machine_definitions_map)
+        self._set_mount_count()
+
+    def _apply_machine_identity(self, found_real_id, definitions_map):
+        """Helper function to identify the machine"""
+        if found_real_id and found_real_id in definitions_map:
+            real_name = definitions_map[found_real_id]
             self.machine_model_name = real_name
             self.machine_display_string = real_name.replace("_", " ")
         elif found_real_id:
             self.machine_model_name = found_real_id
             self.machine_display_string = f"ID {found_real_id}"
 
-        if self.machine_model_name in ["AF500", "AF510", "AS100"]:
-            self.mount_count = 1
+    def _set_mount_count(self):
+        """Calculates the mount count dependend on the machine"""
+        if self.machine_model_name in MODELS_WITH_MOUNT:
+            self.mount_count = MOUNT_REQUIRED
         else:
-            self.mount_count = 0
+            self.mount_count = MOUNT_NOT_REQUIRED
 
 
     def logic_validate_mount_count(self, user_input_text: str) -> tuple[str, bool, str]:
@@ -102,10 +131,10 @@ class MachineBusinessLogic:
         limit_description = ""
 
         # Adjust limits based on active features or machine model
-        if self.feature_state.get("createShelf"):
+        if self.feature_state.get(FEATURE_SHELF_SMALL):
             min_allowed, max_allowed = MIN_COUNT_FOR_EQUIPPED_MODELS, SMALL_SHELF_LIMIT
             limit_description = "(Small Shelf Limit)"
-        elif self.feature_state.get("createBigShelf"):
+        elif self.feature_state.get(FEATURE_SHELF_BIG):
             min_allowed, max_allowed = MIN_COUNT_FOR_EQUIPPED_MODELS, DEFAULT_MAX_MOUNT_COUNT
             limit_description = "(Big Shelf Limit)"
         elif self.machine_model_name == "AS100":
@@ -130,17 +159,27 @@ class MachineBusinessLogic:
     def logic_toggle_feature(self, feature_name: str) -> None:
         """Toggles features and maintains logical consistency between options."""
         self.feature_state[feature_name] = not self.feature_state.get(feature_name, False)
-        s = self.feature_state
-        if feature_name in ["createShelf", "createBigShelf"] and s[feature_name]:
-            other = "createBigShelf" if feature_name == "createShelf" else "createShelf"
-            s[other] = False
-            s["RobotMode"] = True
-            s["ShiftCutDevice"] = False
+        states = self.feature_state
+        if feature_name in [FEATURE_SHELF_SMALL, FEATURE_SHELF_BIG] and states[feature_name]:
+            other = FEATURE_SHELF_BIG if feature_name == FEATURE_SHELF_SMALL else FEATURE_SHELF_SMALL
+            states[other] = False
+            states[FEATURE_ROBOT_MODE] = True
+            states[FEATURE_SHIFT_CUT] = False
+        else:
+            if not states[FEATURE_SHELF_SMALL] and not states[FEATURE_SHELF_BIG]:
+                states[FEATURE_ROBOT_MODE] = False
 
-        if feature_name == "ShiftCutDevice" and s["ShiftCutDevice"]:
-            if s["createShelf"] or s["createBigShelf"]:
-                s["ShiftCutDevice"] = False
+        if feature_name == FEATURE_SHIFT_CUT and states[FEATURE_SHIFT_CUT]:
+            if states[FEATURE_SHELF_SMALL] or states[FEATURE_SHELF_BIG]:
+                states[FEATURE_SHIFT_CUT] = False
+            else:
+                self.is_bars_mode = True
+                self.logic_load_files_for_mode()
+                self.logic_load_xml_data_for_files()
 
+    def logic_is_mode_switch_allowed(self) -> bool:
+        """CHECKS if you are allowed to switch between Bars and Profiles"""
+        return not self.feature_state.get(FEATURE_SHIFT_CUT, False)
 
     def logic_load_files_for_mode(self) -> None:
         """Fetches file names from the ZIP for the selected mode."""
@@ -152,8 +191,7 @@ class MachineBusinessLogic:
 
     def logic_load_xml_data_for_files(self) -> None:
         """
-        Lädt IST- und SOLL-Werte aus XML-Dateien in Bars/ und Profiles/.
-        Nutzt Konstanten statt Magic Numbers.
+        Loads IST- and SOLL-Values from the XML in Bars/ and Profiles/.
         """
         if not self.uploaded_file_path:
             return
@@ -182,8 +220,8 @@ class MachineBusinessLogic:
         final_features = []
         for key, active in self.feature_state.items():
             if active:
-                if key == "createShelf": final_features.append({"createShelf": "smallShelf"})
-                elif key == "createBigShelf": final_features.append({"createShelf": "bigShelf"})
+                if key == FEATURE_SHELF_SMALL: final_features.append({FEATURE_SHELF_SMALL: "smallShelf"})
+                elif key == FEATURE_SHELF_BIG: final_features.append({FEATURE_SHELF_SMALL: "bigShelf"})
                 else: final_features.append({key: active})
         return {
             "MachineModel": self.machine_model_name,
