@@ -24,7 +24,7 @@ jobs:
 
       - name: Flet Build Windows
         run: |
-          flet pack main.py --icon assets/icon.ico --name "TestConfigurationWizard" 
+          flet pack __main__.py --icon assets/icon.ico --name "TestConfigurationWizard" 
 
       - name: Artefakt hochladen
         uses: actions/upload-artifact@v4
