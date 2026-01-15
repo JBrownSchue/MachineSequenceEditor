@@ -1,4 +1,4 @@
-name: Build Windows EXE (Modern)
+name: Pack Windows EXE (PyInstaller)
 on:
   workflow_dispatch:
 
