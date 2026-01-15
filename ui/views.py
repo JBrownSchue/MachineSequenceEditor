@@ -446,30 +446,24 @@ class MachineApp:
     def on_handle_route(self, _):
         """Handles navigation safely by building the view before clearing the stack."""
         try:
-            # 1. Zuerst die neue View erstellen (hier passieren meistens die Fehler)
             builder = self.view_factories.get(self.page.route, self.view_factories["/"])
             new_view = builder()
 
-            # 2. Erst wenn das Erstellen geklappt hat, leeren wir die alten Views
             self.page.views.clear()
             self.page.overlay.clear()
 
-            # 3. Overlays hinzufügen
             if hasattr(new_view, "file_picker"):
                 self.page.overlay.append(new_view.file_picker)
             if hasattr(new_view, "save_dialog"):
                 self.page.overlay.append(new_view.save_dialog)
 
-            # 4. View hinzufügen und Seite aktualisieren
             self.page.views.append(new_view)
             self.page.update()
 
-            # 5. Optionaler Attach-Logik ausführen
             if hasattr(new_view, "on_attach"):
                 new_view.on_attach()
 
-        except Exception as e:
-            # Falls irgendetwas schiefgeht, zeigen wir den Stacktrace direkt in der App
+        except Exception:
             import traceback
             error_stack = traceback.format_exc()
             self.page.views.clear()
