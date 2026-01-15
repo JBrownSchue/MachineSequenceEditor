@@ -1,0 +1,17 @@
+import flet as ft
+from ui import MachineApp
+import traceback
+
+
+def main(page: ft.Page):
+    try:
+        MachineApp(page)
+    except Exception as e:
+        # Dies zeigt den kompletten Fehler-Stacktrace direkt in der App an
+        error_stack = traceback.format_exc()
+        page.add(ft.Text(f"Kritischer Fehler beim Start:\n{error_stack}", color="red"))
+        page.update()
+
+
+if __name__ == "__main__":
+    ft.app(target=main, assets_dir="assets")

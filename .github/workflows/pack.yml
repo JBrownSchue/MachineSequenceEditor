@@ -1,0 +1,38 @@
+name: Build Windows EXE (Modern)
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.9'
+
+      - name: Install Dependencies
+        run: |
+          pip install flet==0.27.3
+          pip install -r requirements.txt
+
+      - name: Build EXE
+        shell: pwsh
+        env:
+          PYTHONUTF8: 1
+        run: |
+          flet pack __main__.py --icon assets/icon.ico --name "TestConfigurationWizard" --add-data "assets;assets"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestConfigurationWizard-App
+          path: dist/

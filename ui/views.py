@@ -22,7 +22,8 @@ class UploadView(ft.View):
         super().__init__(route="/", padding=LARGE_PADDING)
         self.service = service
         self.nav = navigation_callback
-        self.file_picker = ft.FilePicker(on_result=self.on_file_result)
+        self.file_picker = ft.FilePicker()
+        self.file_picker.on_result = self.on_file_result
 
         self.status_label = ft.Text()
         self.proceed_button = ft.ElevatedButton(
@@ -73,6 +74,7 @@ class UploadView(ft.View):
             self.status_label.value = f"Ausgewählte Datei: {uploaded_file_name}"
             self.proceed_button.disabled = False
             self.update()
+
 
 class EditorView(ft.View):
     """
@@ -327,7 +329,8 @@ class ResultView(ft.View):
             icon=ft.Icons.DOWNLOAD,
             on_click=self.on_save_click
         )
-        self.save_dialog = ft.FilePicker(on_result=self.on_export_finished)
+        self.save_dialog = ft.FilePicker()
+        self.save_dialog.on_result = self.on_export_finished
 
         self.controls = [
             ft.AppBar(title=ft.Text("Vorgang abgeschlossen"), bgcolor=ft.Colors.GREEN_100),
@@ -434,25 +437,58 @@ class MachineApp:
             "/result": lambda: ResultView(self.service, self.page.go),
         }
 
-        self.page.go("/")
+        if self.page.route == "/":
+            self.on_handle_route(None)
+        else:
+            self.page.go("/")
 
 
     def on_handle_route(self, _):
-        """Handles navigation by clearing the view stack and loading the target view."""
-        self.page.views.clear()
-        builder = self.view_factories.get(self.page.route, self.view_factories["/"])
-        new_view = builder()
+        """Handles navigation safely by building the view before clearing the stack."""
+        try:
+            # 1. Zuerst die neue View erstellen (hier passieren meistens die Fehler)
+            builder = self.view_factories.get(self.page.route, self.view_factories["/"])
+            new_view = builder()
 
-        if hasattr(new_view, "file_picker"):
-            self.page.overlay.append(new_view.file_picker)
-        if hasattr(new_view, "save_dialog"):
-            self.page.overlay.append(new_view.save_dialog)
+            # 2. Erst wenn das Erstellen geklappt hat, leeren wir die alten Views
+            self.page.views.clear()
+            self.page.overlay.clear()
 
-        self.page.views.append(new_view)
-        self.page.update()
+            # 3. Overlays hinzufügen
+            if hasattr(new_view, "file_picker"):
+                self.page.overlay.append(new_view.file_picker)
+            if hasattr(new_view, "save_dialog"):
+                self.page.overlay.append(new_view.save_dialog)
 
-        if hasattr(new_view, "on_attach"):
-            new_view.on_attach()
+            # 4. View hinzufügen und Seite aktualisieren
+            self.page.views.append(new_view)
+            self.page.update()
+
+            # 5. Optionaler Attach-Logik ausführen
+            if hasattr(new_view, "on_attach"):
+                new_view.on_attach()
+
+        except Exception as e:
+            # Falls irgendetwas schiefgeht, zeigen wir den Stacktrace direkt in der App
+            import traceback
+            error_stack = traceback.format_exc()
+            self.page.views.clear()
+            self.page.views.append(
+                ft.View(
+                    controls=[
+                        ft.AppBar(title=ft.Text("Kritischer Fehler"), bgcolor=ft.Colors.RED_100),
+                        ft.Container(
+                            content=ft.Column([
+                                ft.Text("Die App konnte die Seite nicht laden:", weight="bold"),
+                                ft.Text(error_stack, color=ft.Colors.RED, size=12, selectable=True),
+                                ft.ElevatedButton("Zurück zum Start", on_click=lambda _: self.page.go("/"))
+                            ], scroll=ft.ScrollMode.AUTO),
+                            padding=20
+                        )
+                    ]
+                )
+            )
+            self.page.update()
 
 
     def on_handle_pop(self, _):
