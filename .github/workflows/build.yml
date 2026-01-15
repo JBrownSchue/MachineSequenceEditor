@@ -1,4 +1,4 @@
-name: Build Windows EXE (Modern)
+name: Build Windows EXE (Flet Build)
 on:
   workflow_dispatch:
 
@@ -9,30 +9,41 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # 1. Flutter Setup mit einer expliziten, stabilen Version
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          flutter-version: '3.24.5' # Eine Version, die stabil mit Flet harmoniert
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12.9'
 
+      # 2. Saubere Installation der Abhängigkeiten
       - name: Install Dependencies
         run: |
-          pip install flet
+          python -m pip install --upgrade pip
+          pip install flet==0.27.3 # Explizite Version zur Vermeidung von CLI-Bugs
           pip install -r requirements.txt
 
+      # 3. Den Build-Prozess bereinigen und starten
       - name: Build EXE
         shell: pwsh
         env:
           PYTHONUTF8: 1
         run: |
-          flet build windows --module-name __main__.py -o dist --product "TestConfigurationWizard"
+          # Löschen eventueller Flutter-Build-Reste
+          if (Test-Path "build") { Remove-Item -Recurse -Force build }
+          
+          # Wir nutzen main.py als Standard-Einstiegspunkt
+          # Lassen Sie --module-name weg, wenn main.py im Root liegt
+          flet build windows -v --product "TestConfigurationWizard" --module-name __main__.py
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TestConfigurationWizard-App
-          path: dist/
+          name: TestConfigurationWizard-Native
+          # Flet Build legt das Ergebnis in build/windows ab
+          path: build/windows/

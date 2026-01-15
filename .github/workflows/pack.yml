@@ -1,11 +1,11 @@
-name: Pack Windows EXE (PyInstaller)
+name: Build Windows EXE (PyInstaller)
 on:
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
